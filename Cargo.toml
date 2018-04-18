@@ -5,6 +5,9 @@ version = "0.1.0"
 authors = ["Katharina Fey <kookie@spacekookie.de>"]
 
 [dependencies]
-clap = "^2.0"
+clap = "2.0"
+num_cpus = "1.0"
+
 human-panic = "*"
 question = "*"
+colored = "*"
