@@ -7,6 +7,7 @@ authors = ["Katharina Fey <kookie@spacekookie.de>"]
 [dependencies]
 clap = "2.0"
 num_cpus = "1.0"
+users = "0.6.1"
 
 human-panic = "*"
 question = "*"

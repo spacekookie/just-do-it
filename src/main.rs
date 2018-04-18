@@ -2,11 +2,13 @@ extern crate clap;
 extern crate colored;
 extern crate num_cpus;
 extern crate question;
+extern crate users;
 
 #[macro_use]
 extern crate human_panic;
 
 use clap::{App, AppSettings, Arg, SubCommand};
+use users::{get_user_by_uid, get_current_uid};
 use question::{Answer, Question};
 use std::process::{self, Command};
 use colored::*;
@@ -16,6 +18,9 @@ const DELETE_QUESTION: &'static str =
 
 fn main() {
     setup_panic!();
+
+    let u = get_user_by_uid(get_current_uid()).unwrap();
+    let username = u.name();
 
     let m = App::new("doit")
         .setting(AppSettings::SubcommandRequired)
@@ -59,7 +64,7 @@ fn main() {
             );
             docker_create(name);
             docker_start(name);
-            docker_base_install(name);
+            docker_base_install(name, username);
             println!("✨✨✨ Container created and ready: {} ✨✨✨", name);
         }
         ("work", Some(m)) => {
@@ -68,8 +73,9 @@ fn main() {
                 "Look at you busy bee, let's get you ready working on ✨ {} ✨",
                 name
             );
+            
             docker_start(name);
-            docker_attach(name);
+            docker_attach(name, username);
         }
         ("list", _) => docker_list_all(),
 
@@ -146,73 +152,47 @@ fn docker_start(name: &str) {
 }
 
 fn docker_stop(name: &str) {
-    let args = ["stop", name];
-    let mut cmd = Command::new("docker")
-        .args(&args)
-        .spawn()
-        .expect(&format!("docker stop failed for {:?}", &args));
-
-    if !cmd.wait().unwrap().success() {
-        eprintln!("{}", "Failed to run stop command!".red());
-        process::exit(2);
-    }
+    run(format!("docker stop {}", name));
 }
 
 fn docker_delete(name: &str) {
-    let args = ["rm", name];
-    let mut cmd = Command::new("docker")
-        .args(&args)
-        .spawn()
-        .expect(&format!("docker delete failed for {:?}", &args));
-
-    if !cmd.wait().unwrap().success() {
-        eprintln!("{}", "Failed to run delete command!".red());
-        process::exit(2);
-    }
+    run(format!("docker rm {}", name));
 }
 
 /// Run a certain amount of base install stuff on a container
 ///
 /// See the code for what tools are included
-fn docker_base_install(name: &str) {
-    let args = [
-        "exec",
-        name,
-        "dnf",
-        "install",
-        "-y",
-        "@development-tools",
-        "gpg",
-        "which",
-        "curl",
-        "wget",
-        "vim",
-        "fish",
-        "openssh",
-        "sshfs",
-    ];
+fn docker_base_install(name: &str, username: &str) {
+    run(format!("docker exec {} dnf install -y @evelopment-tools \
+                                                        gpg which curl wget \
+                                                        vim fish openssh \
+                                                        sshfs sudo", name));
 
-    let mut cmd = Command::new("docker")
-        .args(&args)
+    run(format!("doc docker exec website-dev useradd {}", username));
+    run(format!("docker exec website-dev usermod -a -G wheel {}", username));
+}
+
+fn run<S: Into <String>>(command: S) {
+    let command = command.into().clone();
+    let splice = command.split(" ").collect::<Vec<&str>>();
+    let cmd = splice[0];
+    let args = &splice[1..];
+
+    let mut ret = Command::new(cmd)
+        .args(args)
         .spawn()
-        .expect(&format!("docker base install failed for {:?}", args));
+        .expect(&format!("Failed to run {}", command));
 
-    if !cmd.wait().unwrap().success() {
-        eprintln!("{}", "Failed to run install command!".red());
+    if !ret.wait().unwrap().success() {
+        eprintln!(
+            "{}",
+            format!("Failed to run '{}' command!", cmd).red()
+        );
         process::exit(2);
     }
 }
 
 /// This doesn't return
-fn docker_attach(name: &str) {
-    let args = ["attach", name];
-    let mut cmd = Command::new("docker")
-        .args(&args)
-        .spawn()
-        .expect(&format!("docker start failed for {:?}", &args));
-
-    if !cmd.wait().unwrap().success() {
-        eprintln!("{}", "Failed to run start command!".red());
-        process::exit(2);
-    }
+fn docker_attach(name: &str, username: &str) {
+    run(format!("docker exec -it {} su - {}", name, username));
 }
