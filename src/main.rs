@@ -22,16 +22,13 @@ fn main() {
         .about("It works for me, okay?")
         .subcommand(
             SubCommand::with_name("new")
+                .display_order(1)
                 .about("Create new containers and install basic dependencies")
                 .arg(Arg::with_name("name").takes_value(true).required(true)),
         )
         .subcommand(
-            SubCommand::with_name("destroy")
-                .about("Murder existing containers & their families in cold bits...")
-                .arg(Arg::with_name("name").takes_value(true).required(true)),
-        )
-        .subcommand(
             SubCommand::with_name("work")
+                .display_order(2)
                 .about("Start and attach a container to work with it")
                 .arg(Arg::with_name("name").takes_value(true).required(true))
                 .arg(
@@ -40,6 +37,17 @@ fn main() {
                         .possible_values(&["yes", "no", "hell no"])
                         .help("Shutdown this container after working on it"),
                 ),
+        )
+        .subcommand(
+            SubCommand::with_name("list")
+                .display_order(3)
+                .about("Show existing containers and stuff"),
+        )
+        .subcommand(
+            SubCommand::with_name("destroy")
+                .display_order(4)
+                .about("Murder existing containers & their families in cold bits...")
+                .arg(Arg::with_name("name").takes_value(true).required(true)),
         );
 
     match m.get_matches().subcommand() {
@@ -63,6 +71,7 @@ fn main() {
             docker_start(name);
             docker_attach(name);
         }
+        ("list", _) => docker_list_all(),
 
         ("destroy", Some(m)) => {
             let name = m.value_of("name").unwrap();
@@ -81,6 +90,19 @@ fn main() {
             println!("Deleted container {} 🔥🔥🔥", name);
         }
         _ => unreachable!(),
+    }
+}
+
+fn docker_list_all() {
+    let args = ["container", "list", "--all"];
+    let mut cmd = Command::new("docker")
+        .args(&args)
+        .spawn()
+        .expect(&format!("docker list failed for {:?}", &args));
+
+    if !cmd.wait().unwrap().success() {
+        eprintln!("{}", "Failed to run list command!".red());
+        process::exit(2);
     }
 }
 
