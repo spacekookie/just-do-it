@@ -5,7 +5,7 @@ A small wrapper around the docker CLI that fits my usecases
 ## Usage
 
 ```
-spacekookie@azedes ~> doit --help                                                                                                    17:15:15
+spacekookie@azedes ~> doit --help
 doit 
 It works for me, okay?
 
