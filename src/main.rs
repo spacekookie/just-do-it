@@ -8,7 +8,7 @@ extern crate users;
 extern crate human_panic;
 
 use clap::{App, AppSettings, Arg, SubCommand};
-use users::{get_user_by_uid, get_current_uid};
+use users::{get_current_uid, get_user_by_uid};
 use question::{Answer, Question};
 use std::process::{self, Command};
 use colored::*;
@@ -73,7 +73,7 @@ fn main() {
                 "Look at you busy bee, let's get you ready working on ✨ {} ✨",
                 name
             );
-            
+
             docker_start(name);
             docker_attach(name, username);
         }
@@ -163,17 +163,26 @@ fn docker_delete(name: &str) {
 ///
 /// See the code for what tools are included
 fn docker_base_install(name: &str, username: &str) {
-    run(format!("docker exec -it {} dnf install -y @development-tools \
-                                                        gpg which curl wget \
-                                                        vim fish openssh \
-                                                        sshfs sudo", name));
+    run(format!(
+        "docker exec -it {} dnf install -y @development-tools \
+         gpg which curl wget \
+         vim fish openssh \
+         sshfs sudo",
+        name
+    ));
 
-    run(format!("docker exec -it website-dev useradd {}", username));
-    run(format!("docker exec -it website-dev usermod -a -G wheel {}", username));
-    run("echo \"%wheel  ALL=(ALL)       NOPASSWD: ALL\" >> /etc/sudoers");
+    run(format!("docker exec -it {} useradd {}", name, username));
+    run(format!(
+        "docker exec -it {} usermod -a -G wheel {}",
+        name, username
+    ));
+    run(format!(
+        "docker exec -it {} echo \"%wheel  ALL=(ALL)       NOPASSWD: ALL\" >> /etc/sudoers",
+        name
+    ));
 }
 
-fn run<S: Into <String>>(command: S) {
+fn run<S: Into<String>>(command: S) {
     let command = command.into().clone();
     let splice = command.split(" ").collect::<Vec<&str>>();
     let cmd = splice[0];
@@ -185,10 +194,7 @@ fn run<S: Into <String>>(command: S) {
         .expect(&format!("Failed to run {}", command));
 
     if !ret.wait().unwrap().success() {
-        eprintln!(
-            "{}",
-            format!("Failed to run '{}' command!", cmd).red()
-        );
+        eprintln!("{}", format!("Failed to run '{}' command!", cmd).red());
         process::exit(2);
     }
 }
