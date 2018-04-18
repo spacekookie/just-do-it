@@ -163,13 +163,14 @@ fn docker_delete(name: &str) {
 ///
 /// See the code for what tools are included
 fn docker_base_install(name: &str, username: &str) {
-    run(format!("docker exec {} dnf install -y @development-tools \
+    run(format!("docker exec -it {} dnf install -y @development-tools \
                                                         gpg which curl wget \
                                                         vim fish openssh \
                                                         sshfs sudo", name));
 
-    run(format!("doc docker exec website-dev useradd {}", username));
-    run(format!("docker exec website-dev usermod -a -G wheel {}", username));
+    run(format!("docker exec -it website-dev useradd {}", username));
+    run(format!("docker exec -it website-dev usermod -a -G wheel {}", username));
+    run("echo \"%wheel  ALL=(ALL)       NOPASSWD: ALL\" >> /etc/sudoers");
 }
 
 fn run<S: Into <String>>(command: S) {
