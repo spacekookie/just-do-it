@@ -176,10 +176,16 @@ fn docker_base_install(name: &str, username: &str) {
         "docker exec -it {} usermod -a -G wheel {}",
         name, username
     ));
-    run(format!(
-        "docker exec -it {} echo \"%wheel  ALL=(ALL)       NOPASSWD: ALL\" >> /etc/sudoers",
-        name
-    ));
+
+    let mut ret = Command::new("docker")
+        .args(&["exec", "-it", name, "bash", "-c", "\"echo '%wheel  ALL=(ALL)       NOPASSWD: ALL' >> /etc/sudoers\""])
+        .spawn()
+        .expect(&format!("Failed to run set sudo to NOPASSWD. Try running the command yourself!"));
+
+    if !ret.wait().unwrap().success() {
+        eprintln!("{}", "Failed to run docker command!".red());
+        process::exit(2);
+    }
 }
 
 fn run<S: Into<String>>(command: S) {
