@@ -5,7 +5,7 @@ A small wrapper around the docker CLI that fits my usecases
 ## Usage
 
 ```
-spacekookie@azedes ~> doit --help                                                                                                    17:15:15
+spacekookie@azedes ~> doit --help
 doit 
 It works for me, okay?
 
@@ -22,5 +22,4 @@ SUBCOMMANDS:
     list       Show existing containers and stuff
     destroy    Murder existing containers & their families in cold bits...
     help       Prints this message or the help of the given subcommand(s)
-s
 ```
