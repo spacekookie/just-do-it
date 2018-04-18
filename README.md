@@ -22,5 +22,4 @@ SUBCOMMANDS:
     list       Show existing containers and stuff
     destroy    Murder existing containers & their families in cold bits...
     help       Prints this message or the help of the given subcommand(s)
-s
 ```
