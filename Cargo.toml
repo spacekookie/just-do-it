@@ -1,0 +1,10 @@
+[package]
+name = "doit"
+description = "A tool that helps me work with docker"
+version = "0.1.0"
+authors = ["Katharina Fey <kookie@spacekookie.de>"]
+
+[dependencies]
+clap = "^2.0"
+human-panic = "*"
+question = "*"
