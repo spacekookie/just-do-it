@@ -166,11 +166,10 @@ fn docker_base_install(name: &str, username: &str) {
     run(format!("docker exec {} dnf install -y @development-tools \
                                                         gpg which curl wget \
                                                         vim fish openssh \
-                                                        sshfs sudo chsh", name));
+                                                        sshfs sudo", name));
 
     run(format!("doc docker exec website-dev useradd {}", username));
     run(format!("docker exec website-dev usermod -a -G wheel {}", username));
-    run(format!("docker exec website-dev chsh -a -G wheel {}", username));
 }
 
 fn run<S: Into <String>>(command: S) {
